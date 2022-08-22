@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>My first three.js app</title>
+	<style>
+		body {
+			margin: 0;
+		}
+	</style>
+</head>
+
+<body>
+	<!-- <script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script> -->
+
+	<script type="importmap">
+		{
+			"imports": {
+				"three": "../lib/three.module.js"
+			}
+		}
+	</script>
+
+	<script type="module">
+		import * as THREE from 'three';
+
+		import { FontLoader } from '../lib/jsm/loaders/FontLoader.js';
+		import { TextGeometry } from '../lib/jsm/geometries/TextGeometry.js';
+
+		// Our Javascript will go here.
+		const scene = new THREE.Scene();
+		let camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 1500);
+		camera.position.set(0, 400, 700);
+
+		let cameraTarget = new THREE.Vector3(0, 150, 0);
+
+		const renderer = new THREE.WebGLRenderer();
+		renderer.setSize(window.innerWidth, window.innerHeight, false);
+		document.body.appendChild(renderer.domElement);
+
+		const points = [];
+		points.push(new THREE.Vector3(- 5, 0, 0));
+		points.push(new THREE.Vector3(0, 10, 0));
+		points.push(new THREE.Vector3(10, 0, 0));
+
+		const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+		const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+
+		const line = new THREE.Line(geometry, material);
+
+		scene.add(line);
+		//line.position.y = -10;
+
+		function createText(font) {
+			const height = 20,
+				size = 70,
+				hover = 30,
+
+				curveSegments = 4,
+
+				bevelThickness = 2,
+				bevelSize = 1.5;
+
+			let materials = [
+				new THREE.MeshPhongMaterial({ color: 0xFF00FF, flatShading: true }), // front
+				new THREE.MeshPhongMaterial({ color: 0xFF0000 }) // side
+			];
+
+			let text = "Sua le"
+			let textGeo = new TextGeometry(text, {
+
+				font: font,
+
+				size: size,
+				height: height,
+				curveSegments: curveSegments,
+
+				bevelThickness: bevelThickness,
+				bevelSize: bevelSize,
+				bevelEnabled: false
+
+			});
+
+			console.log(textGeo)
+			textGeo.computeBoundingBox();
+
+			const centerOffset = - 0.5 * (textGeo.boundingBox.max.x - textGeo.boundingBox.min.x);
+
+			let textMesh1 = new THREE.Mesh(textGeo, materials);
+
+			textMesh1.position.x = centerOffset;
+			textMesh1.position.y = hover;
+			textMesh1.position.z = 0;
+
+			textMesh1.rotation.x = 0;
+			textMesh1.rotation.y = Math.PI * 2;
+
+			let group = new THREE.Group();
+			group.add(textMesh1);
+
+			if (true) {
+
+				let textMesh2 = new THREE.Mesh(textGeo, materials);
+
+				textMesh2.position.x = centerOffset;
+				textMesh2.position.y = - hover;
+				textMesh2.position.z = height;
+
+				textMesh2.rotation.x = Math.PI;
+				textMesh2.rotation.y = Math.PI * 2;
+
+				group.add(textMesh2);
+
+			}
+			group.position.y = 100;
+			return group
+		}
+
+		function loadFont(scene) {
+			const loader = new FontLoader();
+			loader.load('/fonts/' + 'optimer' + '_' + 'bold' + '.typeface.json', function (response) {
+
+				console.log(response)
+				let cc = createText(response);
+				scene.add(cc)
+			});
+		}
+
+		loadFont(scene)
+
+		const pointLight = new THREE.PointLight(0xffffff, 1.5);
+		pointLight.position.set(0, 100, 90);
+		camera.lookAt(cameraTarget);
+		scene.add(pointLight);
+
+		function animate() {			
+			console.log(camera)
+			renderer.clear();
+			requestAnimationFrame(animate);
+			renderer.render(scene, camera);
+		}
+		animate();
+
+
+
+	</script>
+</body>
+
+</html>
